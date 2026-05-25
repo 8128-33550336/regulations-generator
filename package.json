@@ -1,0 +1,36 @@
+{
+  "name": "regulations-generator",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "files": [
+    "dist",
+    "resources",
+    "README.md"
+  ],
+  "bin": {
+    "regulation-generate": "node dist/commands/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "generate": "npm run build --silent && npx regulation-generate",
+    "diff": "npm run generate -- diff",
+    "all": "npm run generate -- -a",
+    "html": "npm run generate -- -H",
+    "pdf": "npm run generate -- -p",
+    "xml": "npm run generate -- -x"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "fast-xml-builder": "^1.2.0",
+    "puppeteer": "^25.0.4",
+    "rehype-stringify": "^10.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.3"
+  }
+}
