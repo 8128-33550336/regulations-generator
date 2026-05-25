@@ -1,5 +1,5 @@
-name: Publish OCI image
-run-name: Publish OCI image
+name: Publish image
+run-name: Publish image
 
 permissions:
   contents: read

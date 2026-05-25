@@ -1,4 +1,6 @@
-FROM node:25-trixie-slim as builder
+FROM node:25-trixie-slim AS builder
+
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 
 WORKDIR /root/workdir
 
