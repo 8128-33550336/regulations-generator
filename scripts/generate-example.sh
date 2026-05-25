@@ -3,7 +3,7 @@ set -euo pipefail
 
 in_dir="example/in"
 out_dir="example/out"
-cli=(node bin/regulation-generate.js)
+cli=(npx regulations-generate)
 
 mkdir -p "$out_dir"
 npm run build --silent

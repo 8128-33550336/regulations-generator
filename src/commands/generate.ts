@@ -1,4 +1,4 @@
-import { rm, mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { renderIndexHtml, renderIndexJson, renderIndexMarkdown } from "../render/index.js";
 import { renderSitemap } from "../render/sitemap.js";
@@ -8,26 +8,6 @@ import type { GeneratedLaw } from "../types.js";
 import { generateOne, markdownInputs, writeSingleFile } from "./law-files.js";
 import { copyStylesheet, stylesheetHref } from "./resources.js";
 import type { GenerateOptions } from "./types.js";
-
-function assertSafeDirectoryOutput(inputPath: string, outputDir: string): void {
-  if (outputDir === path.parse(outputDir).root) {
-    throw new Error(`Refusing to recreate filesystem root: ${outputDir}`);
-  }
-
-  if (outputDir === process.cwd()) {
-    throw new Error(`Refusing to recreate current working directory: ${outputDir}`);
-  }
-
-  if (outputDir === inputPath) {
-    throw new Error(`Input and output directory must be different: ${outputDir}`);
-  }
-}
-
-async function recreateOutputDirectory(inputPath: string, outputDir: string): Promise<void> {
-  assertSafeDirectoryOutput(inputPath, outputDir);
-  await rm(outputDir, { recursive: true, force: true });
-  await mkdir(outputDir, { recursive: true });
-}
 
 function indexTitle(inputPath: string, options: GenerateOptions): string {
   return options.title ?? path.basename(inputPath.replace(/[\\/]$/, ""));
@@ -74,7 +54,7 @@ export async function generate(input: string, output: string | undefined, option
     const outputPathValue = resolveArgPath(output);
 
     const inputFiles = await markdownInputs(inputPath);
-    await recreateOutputDirectory(inputPath, outputPathValue);
+    await mkdir(outputPathValue, { recursive: true });
     if (effectiveOptions.html || effectiveOptions.index) {
       await copyStylesheet(outputPathValue);
     }
