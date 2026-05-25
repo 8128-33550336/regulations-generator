@@ -20,7 +20,6 @@ export function renderIndexHtml(laws: GeneratedLaw[], title: string, description
       element("meta", { charset: "UTF-8" }),
       element("meta", { name: "viewport", content: "width=device-width, initial-scale=1.0" }),
       element("title", {}, [text(title)]),
-      element("link", { rel: "stylesheet", href: stylesheet }),
     ]),
     element("body", {}, [
       element("h1", {}, [text(title)]),
