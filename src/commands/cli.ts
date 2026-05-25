@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Command } from "commander";
 import { diff } from "./diff.js";
 import { generate } from "./generate.js";

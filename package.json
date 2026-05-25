@@ -9,11 +9,11 @@
     "README.md"
   ],
   "bin": {
-    "regulation-generate": "node dist/commands/cli.js"
+    "regulations-generate": "dist/commands/cli.js"
   },
   "scripts": {
     "build": "tsc",
-    "generate": "npm run build --silent && npx regulation-generate",
+    "generate": "npm run build --silent && npx regulations-generate",
     "diff": "npm run generate -- diff",
     "all": "npm run generate -- -a",
     "html": "npm run generate -- -H",
