@@ -30,10 +30,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json tsconfig.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev && npm link
 
 COPY resources ./resources
 COPY --from=builder /root/workdir/dist ./dist
 
-ENTRYPOINT ["npx", "regulations-generate"]
+
+ENTRYPOINT ["regulations-generate"]
 CMD ["--help"]
