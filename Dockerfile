@@ -35,6 +35,5 @@ RUN npm ci --omit=dev && npm link
 COPY resources ./resources
 COPY --from=builder /root/workdir/dist ./dist
 
-
-ENTRYPOINT ["regulations-generate"]
+ENTRYPOINT ["/usr/bin/env", "regulations-generate"]
 CMD ["--help"]
