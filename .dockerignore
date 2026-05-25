@@ -1,0 +1,7 @@
+node_modules
+dist
+example/out
+.git
+.github
+*.tgz
+.DS_Store
