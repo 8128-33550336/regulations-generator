@@ -35,5 +35,5 @@ RUN npm ci --omit=dev
 COPY resources ./resources
 COPY --from=builder /root/workdir/dist ./dist
 
-ENTRYPOINT ["npx", "regulations-generator"]
+ENTRYPOINT ["npx", "regulations-generate"]
 CMD ["--help"]
