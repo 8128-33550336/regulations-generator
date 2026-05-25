@@ -13,12 +13,12 @@
   },
   "scripts": {
     "build": "tsc",
-    "generate": "npm run build --silent && npx regulations-generate",
-    "diff": "npm run generate -- diff",
-    "all": "npm run generate -- -a",
-    "html": "npm run generate -- -H",
-    "pdf": "npm run generate -- -p",
-    "xml": "npm run generate -- -x"
+    "cli": "npm run build --silent && npx regulations-generate",
+    "diff": "npm run cli -- diff",
+    "all": "npm run cli -- gen -a",
+    "html": "npm run cli -- gen -H",
+    "pdf": "npm run cli -- gen -p",
+    "xml": "npm run cli -- gen -x"
   },
   "dependencies": {
     "commander": "^14.0.3",

@@ -3,9 +3,9 @@ import path from "node:path";
 import { renderIndexHtml, renderIndexJson, renderIndexMarkdown } from "../render/index.js";
 import { renderSitemap } from "../render/sitemap.js";
 import { closePdfBrowser } from "../render/pdf.js";
-import { relativePath, resolveArgPath } from "../shared/cli.js";
+import { relativePath, resolveArgPath } from "../shared/path.js";
 import type { GeneratedLaw } from "../types.js";
-import { generateOne, markdownInputs, writeSingleFile } from "./law-files.js";
+import { generateOne, markdownInputs } from "./law-files.js";
 import { copyStylesheet, stylesheetHref } from "./resources.js";
 import type { GenerateOptions } from "./types.js";
 
@@ -37,15 +37,6 @@ export async function generate(input: string, output: string | undefined, option
   const effectiveOptions = expandGenerateOptions(options);
   try {
     const inputPath = resolveArgPath(input);
-
-    if (effectiveOptions.outputFile) {
-      if (output) {
-        throw new Error("Use either <output> directory or -o/--output-file, not both.");
-      }
-
-      await writeSingleFile(inputPath, resolveArgPath(effectiveOptions.outputFile), effectiveOptions);
-      return;
-    }
 
     if (!output) {
       throw new Error("Missing output directory.");
@@ -80,7 +71,7 @@ export async function generate(input: string, output: string | undefined, option
 function expandGenerateOptions(options: GenerateOptions): GenerateOptions {
   return {
     ...options,
-    html: Boolean(options.html || options.pdf || options.all),
+    html: Boolean(options.html || options.all),
     pdf: Boolean(options.pdf || options.all),
     xml: Boolean(options.xml || options.all),
     json: Boolean(options.json || options.all),

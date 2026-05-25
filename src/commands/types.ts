@@ -10,5 +10,4 @@ export type GenerateOptions = {
   baseUrl: string;
   title?: string;
   description: string;
-  outputFile?: string;
 };

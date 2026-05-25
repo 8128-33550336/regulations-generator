@@ -1,28 +1,36 @@
-# build
+# regulations-generator
 
 規則 Markdown から HTML、XML、新旧対照表 HTML を生成するためのスクリプトです。
 
 ## 使い方 (テスト用)
 
 ```sh
-cd build
 npm install
+npm run build
+```
+
+コマンド形式:
+
+```text
+regulations-generate gen [-a] [-H] [-p] [-x] [-j] [-m] [-i] [-s] [-b <url>|--base-url <url>] [--title <title>] [--description <text>] <input> <output-dir>
+regulations-generate conv [-H] [-p] [-x] [-j] [-m] <input.md> <output-file>
+regulations-generate diff [-H] [-p] <before.md> <after.md> [output]
 ```
 
 単体生成:
 
 ```sh
-regulation-generate -H -o ../bylaw-welcoming/bylaw-welcoming.html ../bylaw-welcoming/bylaw-welcoming-new.md
-regulation-generate -p -o ../bylaw-welcoming/bylaw-welcoming.pdf ../bylaw-welcoming/bylaw-welcoming-new.md
-regulation-generate -x ../bylaw-welcoming/bylaw-welcoming-new.md ../bylaw-welcoming/out
-regulation-generate diff ../bylaw-welcoming/bylaw-welcoming.md ../bylaw-welcoming/bylaw-welcoming-new.md ../bylaw-welcoming/bylaw-welcoming-diff.html
+regulations-generate conv -H example/in/bylaw-welcoming-new.md example/out/bylaw-welcoming-new.html
+regulations-generate conv -p example/in/bylaw-welcoming-new.md example/out/bylaw-welcoming-new.pdf
+regulations-generate conv -x example/in/bylaw-welcoming-new.md example/out/bylaw-welcoming-new.xml
+regulations-generate diff -H -p example/in/bylaw-welcoming-old.md example/in/bylaw-welcoming-new.md example/out/bylaw-welcoming-diff.html
 ```
 
 一括生成 CLI:
 
 ```sh
-regulation-generate -a example/in example/out
-regulation-generate -p example/in example/out
+regulations-generate gen -a example/in example/out
+regulations-generate gen -p example/in example/out
 ```
 
 まとめて生成:
@@ -34,7 +42,29 @@ npm run pdf
 npm run xml
 ```
 
-第二引数は常に出力ディレクトリとして扱います。単体ファイルへ出力する場合は `-o <file>` を指定します。ディレクトリ出力では、出力ディレクトリを削除してから作り直します。形式オプションを指定しない場合、HTML などの形式ファイルは出力しません。`-p` は HTML を生成してから PDF を生成します。`-a` は `-H -p -x -j -i -s -m` 相当です。
+サブコマンド:
+
+| サブコマンド | 用途 | 出力先 |
+| --- | --- | --- |
+| `gen`, `generate` | Markdown ファイルまたはディレクトリをまとめて変換 | ディレクトリ |
+| `conv`, `convert` | 単一 Markdown ファイルを変換 | ファイル |
+| `diff` | 新旧対照表 HTML/PDF を生成 | ファイル |
+
+オプション:
+
+| オプション | `gen` | `conv` | `diff` | 内容 |
+| --- | --- | --- | --- | --- |
+| `-H`, `--html` | yes | yes | yes | HTML を生成 |
+| `-p`, `--pdf` | yes | yes | yes | PDF を生成 |
+| `-x`, `--xml` | yes | yes | no | XML を生成 |
+| `-j`, `--json` | yes | yes | no | JSON を生成 |
+| `-m`, `--md` | yes | yes | no | Markdown をコピー |
+| `-a`, `--all` | yes | no | no | `-H -p -x -j -i -s -m` 相当 |
+| `-i`, `--index` | yes | no | no | `index.html`, `index.md`, `index.json` を生成 |
+| `-s`, `--sitemap` | yes | no | no | `sitemap.xml` を生成 |
+| `-b`, `--base-url <url>` | yes | no | no | `sitemap.xml` のベース URL |
+| `--title <title>` | yes | no | no | インデックスのタイトル |
+| `--description <text>` | yes | no | no | インデックスの説明 |
 
 ## ディレクトリ構成
 

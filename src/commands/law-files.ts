@@ -1,15 +1,14 @@
-import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
-import os from "node:os";
+import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { buildLawModel } from "../build/law-model.js";
 import { collectSections } from "../parse/markdown.js";
 import { renderHtmlDocument } from "../render/page.js";
-import { renderPdfFromHtml } from "../render/pdf.js";
+import { renderPdfFromHtml, renderPdfFromHtmlContent } from "../render/pdf.js";
 import { renderLawDocumentModelNodes } from "../render/sections.js";
 import { renderXmlModel } from "../render/xml.js";
-import { relativePath } from "../shared/cli.js";
+import { relativePath } from "../shared/path.js";
 import type { GeneratedLaw, LawDocumentModel, OutputFile, Section } from "../types.js";
-import { copyStylesheet, stylesheetHref } from "./resources.js";
+import { copyStylesheet, sourceStylesheetHref, stylesheetHref } from "./resources.js";
 import type { GenerateOptions } from "./types.js";
 
 type ParsedMarkdown = {
@@ -41,6 +40,11 @@ function relativeOutputPath(outputDir: string, file: string): string {
   return path.relative(outputDir, file).split(path.sep).join("/");
 }
 
+function htmlOutputForPdf(pdfFile: string): string {
+  const parsed = path.parse(pdfFile);
+  return path.join(parsed.dir, `${parsed.name || parsed.base}.html`);
+}
+
 export async function markdownInputs(inputPath: string): Promise<string[]> {
   const inputStat = await stat(inputPath);
 
@@ -68,16 +72,20 @@ async function writeHtml(
   outputRoot: string,
   options: { log?: boolean } = {},
 ): Promise<void> {
-  const body = await renderLawDocumentModelNodes(parsed.lawModel);
-  const html = renderHtmlDocument({
-    title: parsed.lawModel.title.title,
-    stylesheets: [stylesheetHref(file, outputRoot)],
-    body,
-  });
+  const html = await renderHtml(parsed, stylesheetHref(file, outputRoot));
   await writeFile(file, html);
   if (options.log !== false) {
     console.log(`Wrote ${relativePath(file)}`);
   }
+}
+
+async function renderHtml(parsed: ParsedMarkdown, stylesheet: string): Promise<string> {
+  const body = await renderLawDocumentModelNodes(parsed.lawModel);
+  return renderHtmlDocument({
+    title: parsed.lawModel.title.title,
+    stylesheets: [stylesheet],
+    body,
+  });
 }
 
 async function writeXml(parsed: ParsedMarkdown, file: string): Promise<void> {
@@ -99,46 +107,45 @@ export async function writeSingleFile(inputFile: string, outputFile: string, opt
   const inputStat = await stat(inputFile);
 
   if (inputStat.isDirectory()) {
-    throw new Error("-o/--output-file can only be used with a single Markdown file input.");
+    throw new Error("conv/convert can only be used with a single Markdown file input.");
   }
 
   if (options.index || options.sitemap) {
-    throw new Error("-i/--index and -s/--sitemap cannot be used with -o/--output-file.");
-  }
-
-  if (options.pdf) {
-    if (options.xml || options.json || options.md) {
-      throw new Error("-p/--pdf with -o/--output-file cannot be combined with -x, -j, or -m.");
-    }
-
-    const parsed = await parseMarkdown(inputFile);
-    const tempDir = await mkdtemp(path.join(os.tmpdir(), "regulation-generate-"));
-
-    try {
-      await copyStylesheet(tempDir, { log: false });
-      const tempHtml = path.join(tempDir, `${outputBaseName(inputFile)}.html`);
-      await writeHtml(parsed, tempHtml, tempDir, { log: false });
-      await mkdir(path.dirname(outputFile), { recursive: true });
-      await renderPdfFromHtml(tempHtml, outputFile);
-    } finally {
-      await rm(tempDir, { recursive: true, force: true });
-    }
-
-    return;
+    throw new Error("-i/--index and -s/--sitemap cannot be used with conv/convert.");
   }
 
   const formats = selectedOutputFormats(options);
 
-  if (formats.length > 1) {
-    throw new Error("-o/--output-file can only be used with one output format.");
+  if (options.pdf && (options.xml || options.json || options.md)) {
+    throw new Error("-p/--pdf cannot be combined with -x, -j, or -m in conv/convert.");
   }
 
-  if (formats.length === 0) {
+  if (!options.pdf && formats.length > 1) {
+    throw new Error("conv/convert can only be used with one output format.");
+  }
+
+  if (!options.pdf && formats.length === 0) {
+    return;
+  }
+
+  await mkdir(path.dirname(outputFile), { recursive: true });
+
+  if (options.pdf) {
+    const parsed = await parseMarkdown(inputFile);
+    if (options.html) {
+      const htmlFile = htmlOutputForPdf(outputFile);
+      const outputRoot = path.dirname(htmlFile);
+      await copyStylesheet(outputRoot);
+      await writeHtml(parsed, htmlFile, outputRoot);
+      await renderPdfFromHtml(htmlFile, outputFile);
+      return;
+    }
+
+    await renderPdfFromHtmlContent(await renderHtml(parsed, sourceStylesheetHref()), outputFile);
     return;
   }
 
   const format = formats[0];
-  await mkdir(path.dirname(outputFile), { recursive: true });
 
   if (format === "md") {
     await writeMarkdown(inputFile, outputFile);
@@ -165,9 +172,9 @@ export async function generateOne(inputFile: string, outputDir: string, options:
   const base = outputBaseName(inputFile);
   const parsed = await parseMarkdown(inputFile);
   const files: OutputFile[] = [];
+  const htmlFile = outputPath(outputDir, base, "html");
 
   if (options.html) {
-    const htmlFile = outputPath(outputDir, base, "html");
     await writeHtml(parsed, htmlFile, outputDir);
     files.push({ type: "html", path: relativeOutputPath(outputDir, htmlFile) });
 
@@ -175,12 +182,16 @@ export async function generateOne(inputFile: string, outputDir: string, options:
     await mkdir(path.dirname(indexHtmlFile), { recursive: true });
     await writeHtml(parsed, indexHtmlFile, outputDir);
     files.push({ type: "html", path: relativeOutputPath(outputDir, indexHtmlFile) });
+  }
 
-    if (options.pdf) {
-      const pdfFile = outputPath(outputDir, base, "pdf");
+  if (options.pdf) {
+    const pdfFile = outputPath(outputDir, base, "pdf");
+    if (options.html) {
       await renderPdfFromHtml(htmlFile, pdfFile);
-      files.push({ type: "pdf", path: relativeOutputPath(outputDir, pdfFile) });
+    } else {
+      await renderPdfFromHtmlContent(await renderHtml(parsed, sourceStylesheetHref()), pdfFile);
     }
+    files.push({ type: "pdf", path: relativeOutputPath(outputDir, pdfFile) });
   }
 
   if (options.xml) {

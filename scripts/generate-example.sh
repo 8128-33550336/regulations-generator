@@ -14,11 +14,11 @@ generate_diff() {
   local output_file="$3"
 
   if [[ -f "$old_file" && -f "$new_file" ]]; then
-    "${cli[@]}" diff "$old_file" "$new_file" "$output_file"
+    "${cli[@]}" diff -H -p "$old_file" "$new_file" "$output_file"
   fi
 }
 
-"${cli[@]}" -a "$in_dir" "$out_dir"
+"${cli[@]}" gen -a "$in_dir" "$out_dir"
 
 generate_diff "$in_dir/bylaw-master-old2.md" "$in_dir/bylaw-master-old.md" "$out_dir/bylaw-master-old2-old-diff.html"
 generate_diff "$in_dir/bylaw-master-old.md" "$in_dir/bylaw-master-new.md" "$out_dir/bylaw-master-old-new-diff.html"
