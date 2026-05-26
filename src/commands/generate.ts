@@ -7,6 +7,7 @@ import { relativePath, resolveArgPath } from "../shared/path.js";
 import type { GeneratedLaw } from "../types.js";
 import { generateOne, markdownInputs } from "./law-files.js";
 import { copyStylesheet } from "./resources.js";
+import { validateGeneratedLaws } from "./schema-validation.js";
 import type { GenerateOptions } from "./types.js";
 
 function indexTitle(inputPath: string, options: GenerateOptions): string {
@@ -55,6 +56,8 @@ export async function generate(input: string, output: string | undefined, option
     for (const inputFile of inputFiles) {
       laws.push(await generateOne(inputFile, outputPathValue, effectiveOptions));
     }
+
+    await validateGeneratedLaws(outputPathValue, laws);
 
     if (effectiveOptions.index) {
       await writeIndexFiles(inputPath, outputPathValue, laws, effectiveOptions);

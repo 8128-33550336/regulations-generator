@@ -71,6 +71,7 @@ export type DiffEntry = {
 export type OutputFile = {
   type: "html" | "pdf" | "xml" | "json" | "toml" | "md";
   path: string;
+  validate?: boolean;
 };
 
 export type GeneratedLaw = {

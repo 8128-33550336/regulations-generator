@@ -17,12 +17,19 @@ WORKDIR /root/workdir
 
 RUN mkdir /usr/local/share/keyrings/
 RUN apt-get update \
-    && apt-get install -y wget \
+    && apt-get install -y ca-certificates wget \
     && wget -q -O /usr/local/share/keyrings/google-chrome.asc https://dl-ssl.google.com/linux/linux_signing_key.pub \
     && sh -c 'echo "deb [arch=amd64 signed-by=/usr/local/share/keyrings/google-chrome.asc] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
 RUN apt-get update \
-    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-freefont-ttf fonts-noto-cjk fonts-noto-cjk-extra libxss1  \
+    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-freefont-ttf fonts-noto-cjk fonts-noto-cjk-extra libxss1 default-jre-headless unzip  \
       --no-install-recommends \
+    && wget -q -O /tmp/jing.zip https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/jing-trang/jing-20091111.zip \
+    && unzip -q /tmp/jing.zip -d /tmp \
+    && mkdir -p /opt/jing \
+    && cp /tmp/jing-20091111/bin/jing.jar /opt/jing/jing.jar \
+    && printf '#!/bin/sh\nexec java -jar /opt/jing/jing.jar "$@"\n' > /usr/local/bin/jing \
+    && chmod +x /usr/local/bin/jing \
+    && rm -rf /tmp/jing.zip /tmp/jing-20091111 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json tsconfig.json ./
@@ -34,6 +41,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 RUN npm ci --omit=dev
 
 COPY resources ./resources
+COPY schema ./schema
 COPY --from=builder /root/workdir/dist ./dist
 
 RUN npm link

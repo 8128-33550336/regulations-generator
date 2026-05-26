@@ -1,0 +1,490 @@
+# Relax NG compact schema for Japanese Law XML v3.
+# This is written from schema/XMLSchemaForJapaneseLaw_v3.xsd and covers the
+# core law hierarchy emitted by regulations-generator.
+
+default namespace = ""
+datatypes xsd = "http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = Law
+
+Law =
+  element Law {
+    attribute Era { "Meiji" | "Taisho" | "Showa" | "Heisei" | "Reiwa" },
+    attribute Year { xsd:positiveInteger },
+    attribute Num { xsd:positiveInteger },
+    attribute PromulgateMonth { xsd:positiveInteger }?,
+    attribute PromulgateDay { xsd:positiveInteger }?,
+    attribute LawType {
+      "Constitution"
+      | "Act"
+      | "CabinetOrder"
+      | "ImperialOrder"
+      | "MinisterialOrdinance"
+      | "Rule"
+      | "Misc"
+    },
+    attribute Lang { "ja" | "en" },
+    LawNum,
+    LawBody
+  }
+
+LawNum = element LawNum { text }
+
+LawBody =
+  element LawBody {
+    attribute Subject { text }?,
+    (
+      (LawTitle, EnactStatement*, TOC?)
+      | (EnactStatement+, TOC?)
+      | (TOC, LawTitle?)
+    ),
+    Preamble?,
+    MainProvision,
+    (SupplProvision | AppdxTable | AppdxNote | AppdxStyle | Appdx | AppdxFig | AppdxFormat)*
+  }
+
+LawTitle =
+  element LawTitle {
+    attribute Kana { text }?,
+    attribute Abbrev { text }?,
+    attribute AbbrevKana { text }?,
+    InlineText
+  }
+
+EnactStatement = element EnactStatement { InlineText }
+
+TOC =
+  element TOC {
+    TOCLabel?,
+    TOCPreambleLabel?,
+    (TOCPart+ | TOCChapter+ | TOCSection+ | TOCArticle+),
+    TOCSupplProvision?,
+    TOCAppdxTableLabel*
+  }
+
+TOCLabel = element TOCLabel { InlineText }
+TOCPreambleLabel = element TOCPreambleLabel { InlineText }
+TOCAppdxTableLabel = element TOCAppdxTableLabel { InlineText }
+ArticleRange = element ArticleRange { InlineText }
+
+TOCPart =
+  element TOCPart {
+    numberedDeleteAttributes,
+    PartTitle,
+    ArticleRange?,
+    TOCChapter*
+  }
+
+TOCChapter =
+  element TOCChapter {
+    numberedDeleteAttributes,
+    ChapterTitle,
+    ArticleRange?,
+    TOCSection*
+  }
+
+TOCSection =
+  element TOCSection {
+    numberedDeleteAttributes,
+    SectionTitle,
+    ArticleRange?,
+    (TOCSubsection | TOCDivision)*
+  }
+
+TOCSubsection =
+  element TOCSubsection {
+    numberedDeleteAttributes,
+    SubsectionTitle,
+    ArticleRange?,
+    TOCDivision*
+  }
+
+TOCDivision =
+  element TOCDivision {
+    numberedDeleteAttributes,
+    DivisionTitle,
+    ArticleRange?
+  }
+
+TOCArticle =
+  element TOCArticle {
+    numberedDeleteAttributes,
+    ArticleTitle,
+    ArticleCaption
+  }
+
+TOCSupplProvision =
+  element TOCSupplProvision {
+    SupplProvisionLabel,
+    ArticleRange?,
+    (TOCArticle | TOCChapter)*
+  }
+
+Preamble = element Preamble { Paragraph+ }
+
+MainProvision =
+  element MainProvision {
+    attribute Extract { xsd:boolean }?,
+    (Part+ | Chapter+ | Section+ | Article+ | Paragraph+)
+  }
+
+Part =
+  element Part {
+    numberedDeleteHideAttributes,
+    PartTitle,
+    ((Article+, Chapter*) | Chapter+)
+  }
+
+PartTitle = element PartTitle { InlineText }
+
+Chapter =
+  element Chapter {
+    numberedDeleteHideAttributes,
+    ChapterTitle,
+    ((Article+, Section*) | Section+)
+  }
+
+ChapterTitle = element ChapterTitle { InlineText }
+
+Section =
+  element Section {
+    numberedDeleteHideAttributes,
+    SectionTitle,
+    ((Article+, Subsection*) | Subsection+ | Division+)
+  }
+
+SectionTitle = element SectionTitle { InlineText }
+
+Subsection =
+  element Subsection {
+    numberedDeleteHideAttributes,
+    SubsectionTitle,
+    ((Article+, Division*) | Division+)
+  }
+
+SubsectionTitle = element SubsectionTitle { InlineText }
+
+Division =
+  element Division {
+    numberedDeleteHideAttributes,
+    DivisionTitle,
+    Article+
+  }
+
+DivisionTitle = element DivisionTitle { InlineText }
+
+Article =
+  element Article {
+    numberedDeleteHideAttributes,
+    ((ArticleCaption, ArticleTitle) | (ArticleTitle, ArticleCaption?)),
+    Paragraph+,
+    SupplNote?
+  }
+
+ArticleTitle = element ArticleTitle { InlineText }
+
+ArticleCaption =
+  element ArticleCaption {
+    attribute CommonCaption { xsd:boolean }?,
+    InlineText
+  }
+
+Paragraph =
+  element Paragraph {
+    attribute Num { xsd:positiveInteger },
+    attribute OldStyle { xsd:boolean }?,
+    attribute OldNum { xsd:boolean }?,
+    attribute Hide { xsd:boolean }?,
+    ParagraphCaption?,
+    ParagraphNum,
+    ParagraphSentence,
+    (
+      AmendProvision*
+      | Class*
+      | ((TableStruct | FigStruct | StyleStruct)+, Item*)
+      | (Item+, (TableStruct | FigStruct | StyleStruct | List)*)
+    )
+  }
+
+ParagraphCaption =
+  element ParagraphCaption {
+    attribute CommonCaption { xsd:boolean }?,
+    InlineText
+  }
+
+ParagraphNum = element ParagraphNum { InlineText }
+ParagraphSentence = element ParagraphSentence { Sentence+ }
+SupplNote = element SupplNote { InlineText }
+
+AmendProvision =
+  element AmendProvision {
+    ((AmendProvisionSentence, NewProvision*) | NewProvision+)
+  }
+
+AmendProvisionSentence = element AmendProvisionSentence { Sentence }
+NewProvision = element NewProvision { (LawBody | NewProvisionChild+) }
+NewProvisionChild =
+  LawTitle
+  | Preamble
+  | TOC
+  | Part
+  | PartTitle
+  | Chapter
+  | ChapterTitle
+  | Section
+  | SectionTitle
+  | Subsection
+  | SubsectionTitle
+  | Division
+  | DivisionTitle
+  | Article
+  | SupplNote
+  | Paragraph
+  | Item
+  | Subitem1
+  | Subitem2
+  | Subitem3
+  | Subitem4
+  | Subitem5
+  | Subitem6
+  | Subitem7
+  | Subitem8
+  | Subitem9
+  | Subitem10
+  | List
+  | Sentence
+  | AmendProvision
+  | AppdxTable
+  | AppdxNote
+  | AppdxStyle
+  | Appdx
+  | AppdxFig
+  | AppdxFormat
+  | SupplProvisionAppdxStyle
+  | SupplProvisionAppdxTable
+  | SupplProvisionAppdx
+  | TableStruct
+  | TableRow
+  | TableColumn
+  | FigStruct
+  | NoteStruct
+  | StyleStruct
+  | FormatStruct
+  | Remarks
+
+Class =
+  element Class {
+    attribute Num { text },
+    ClassTitle?,
+    ClassSentence,
+    Item*
+  }
+
+ClassTitle = element ClassTitle { InlineText }
+ClassSentence = element ClassSentence { (Sentence+ | Column+ | Table) }
+
+Item =
+  element Item {
+    numberedDeleteHideAttributes,
+    ItemTitle?,
+    ItemSentence,
+    Subitem1*,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+ItemTitle = element ItemTitle { InlineText }
+ItemSentence = element ItemSentence { (Sentence+ | Column+ | Table) }
+
+Subitem1 =
+  element Subitem1 {
+    numberedDeleteHideAttributes,
+    Subitem1Title?,
+    Subitem1Sentence,
+    Subitem2*,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+Subitem2 =
+  element Subitem2 {
+    numberedDeleteHideAttributes,
+    Subitem2Title?,
+    Subitem2Sentence,
+    Subitem3*,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+Subitem3 =
+  element Subitem3 {
+    numberedDeleteHideAttributes,
+    Subitem3Title?,
+    Subitem3Sentence,
+    Subitem4*,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+Subitem4 =
+  element Subitem4 {
+    numberedDeleteHideAttributes,
+    Subitem4Title?,
+    Subitem4Sentence,
+    Subitem5*,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+Subitem5 =
+  element Subitem5 {
+    numberedDeleteHideAttributes,
+    Subitem5Title?,
+    Subitem5Sentence,
+    Subitem6*,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+Subitem6 =
+  element Subitem6 {
+    numberedDeleteHideAttributes,
+    Subitem6Title?,
+    Subitem6Sentence,
+    Subitem7*,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+Subitem7 =
+  element Subitem7 {
+    numberedDeleteHideAttributes,
+    Subitem7Title?,
+    Subitem7Sentence,
+    Subitem8*,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+Subitem8 =
+  element Subitem8 {
+    numberedDeleteHideAttributes,
+    Subitem8Title?,
+    Subitem8Sentence,
+    Subitem9*,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+Subitem9 =
+  element Subitem9 {
+    numberedDeleteHideAttributes,
+    Subitem9Title?,
+    Subitem9Sentence,
+    Subitem10*,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+Subitem10 =
+  element Subitem10 {
+    numberedDeleteHideAttributes,
+    Subitem10Title?,
+    Subitem10Sentence,
+    (TableStruct | FigStruct | StyleStruct | List)*
+  }
+
+Subitem1Title = element Subitem1Title { InlineText }
+Subitem2Title = element Subitem2Title { InlineText }
+Subitem3Title = element Subitem3Title { InlineText }
+Subitem4Title = element Subitem4Title { InlineText }
+Subitem5Title = element Subitem5Title { InlineText }
+Subitem6Title = element Subitem6Title { InlineText }
+Subitem7Title = element Subitem7Title { InlineText }
+Subitem8Title = element Subitem8Title { InlineText }
+Subitem9Title = element Subitem9Title { InlineText }
+Subitem10Title = element Subitem10Title { InlineText }
+
+Subitem1Sentence = element Subitem1Sentence { (Sentence+ | Column+ | Table) }
+Subitem2Sentence = element Subitem2Sentence { (Sentence+ | Column+ | Table) }
+Subitem3Sentence = element Subitem3Sentence { (Sentence+ | Column+ | Table) }
+Subitem4Sentence = element Subitem4Sentence { (Sentence+ | Column+ | Table) }
+Subitem5Sentence = element Subitem5Sentence { (Sentence+ | Column+ | Table) }
+Subitem6Sentence = element Subitem6Sentence { (Sentence+ | Column+ | Table) }
+Subitem7Sentence = element Subitem7Sentence { (Sentence+ | Column+ | Table) }
+Subitem8Sentence = element Subitem8Sentence { (Sentence+ | Column+ | Table) }
+Subitem9Sentence = element Subitem9Sentence { (Sentence+ | Column+ | Table) }
+Subitem10Sentence = element Subitem10Sentence { (Sentence+ | Column+ | Table) }
+
+Sentence =
+  element Sentence {
+    attribute Num { xsd:positiveInteger }?,
+    attribute Function { "main" | "proviso" }?,
+    attribute Indent {
+      "Paragraph"
+      | "Item"
+      | "Subitem1"
+      | "Subitem2"
+      | "Subitem3"
+      | "Subitem4"
+      | "Subitem5"
+      | "Subitem6"
+      | "Subitem7"
+      | "Subitem8"
+      | "Subitem9"
+      | "Subitem10"
+    }?,
+    attribute WritingMode { "vertical" | "horizontal" }?,
+    mixed { (Line | QuoteStruct | ArithFormula | Ruby | Sup | Sub)* }
+  }
+
+Column =
+  element Column {
+    attribute Num { xsd:positiveInteger }?,
+    attribute LineBreak { xsd:boolean }?,
+    attribute Align { "left" | "center" | "right" | "justify" }?,
+    Sentence+
+  }
+
+SupplProvision =
+  element SupplProvision {
+    attribute Type { "New" | "Amend" }?,
+    attribute AmendLawNum { text }?,
+    attribute Extract { xsd:boolean }?,
+    SupplProvisionLabel,
+    (Chapter | Article | Paragraph)+,
+    (SupplProvisionAppdxTable | SupplProvisionAppdxStyle | SupplProvisionAppdx)*
+  }
+
+SupplProvisionLabel = element SupplProvisionLabel { InlineText }
+
+InlineText = mixed { (Line | Ruby | Sup | Sub)* }
+Line = element Line { attribute Style { text }?, text }
+Ruby = element Ruby { element Rt { text }, text }
+Sup = element Sup { text }
+Sub = element Sub { text }
+QuoteStruct = element QuoteStruct { text }
+ArithFormula = element ArithFormula { text }
+
+TableStruct = element TableStruct { anyContent }
+Table = element Table { anyContent }
+TableRow = element TableRow { anyContent }
+TableColumn = element TableColumn { anyContent }
+FigStruct = element FigStruct { anyContent }
+NoteStruct = element NoteStruct { anyContent }
+StyleStruct = element StyleStruct { anyContent }
+FormatStruct = element FormatStruct { anyContent }
+Remarks = element Remarks { anyContent }
+List = element List { anyContent }
+AppdxTable = element AppdxTable { anyContent }
+AppdxNote = element AppdxNote { anyContent }
+AppdxStyle = element AppdxStyle { anyContent }
+Appdx = element Appdx { anyContent }
+AppdxFig = element AppdxFig { anyContent }
+AppdxFormat = element AppdxFormat { anyContent }
+SupplProvisionAppdxTable = element SupplProvisionAppdxTable { anyContent }
+SupplProvisionAppdxStyle = element SupplProvisionAppdxStyle { anyContent }
+SupplProvisionAppdx = element SupplProvisionAppdx { anyContent }
+
+numberedDeleteAttributes =
+  attribute Num { text },
+  attribute Delete { xsd:boolean }?
+
+numberedDeleteHideAttributes =
+  attribute Num { text },
+  attribute Delete { xsd:boolean }?,
+  attribute Hide { xsd:boolean }?
+
+anyContent =
+  attribute * { text }*,
+  mixed { element * { anyContent }* }

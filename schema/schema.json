@@ -1,0 +1,231 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/regulations.schema.json",
+    "type": "object",
+    "required": ["type", "title", "metadata", "mainProvision", "supplProvisions"],
+    "properties": {
+        "type": { "const": "law" },
+        "title": { "$ref": "#/$defs/LawTitle" },
+        "metadata": { "type": "array", "items": { "$ref": "#/$defs/LawMetadataBlock" } },
+        "preamble": { "$ref": "#/$defs/LawPreamble" },
+        "mainProvision": { "$ref": "#/$defs/LawMainProvision" },
+        "supplProvisions": { "type": "array", "items": { "$ref": "#/$defs/LawSupplProvision" } }
+    },
+    "$defs": {
+        "LawHeading": {
+            "type": "object",
+            "properties": {
+                "title": { "type": "string" },
+                "rank": { "type": "integer" },
+                "id": { "type": "string" },
+                "parsedText": { "$ref": "#/$defs/ParsedHeadingText" },
+                "baseTitle": { "type": "string" },
+                "caption": { "$ref": "#/$defs/HeadingCaption" }
+            },
+            "required": ["title","rank","id","parsedText","baseTitle"],
+            "additionalProperties": true
+        },
+        "ParsedHeadingText": {
+            "type": "object",
+            "properties": {
+                "type": { "type": "string", "enum": ["law","chapter","mainProvision","preamble","supplProvision","article","paragraph","item"] },
+                "num": { "type": "array", "items": { "type": "integer" } },
+                "rawText": { "type": "string" }
+            },
+            "required": ["type","rawText"],
+            "additionalProperties": true
+        },
+        "HeadingCaption": {
+            "type": "object",
+            "properties": {
+                "prefix": { "type": "string" },
+                "caption": { "type": "string" },
+                "suffix": { "type": "string" }
+            },
+            "required": ["prefix","caption","suffix"],
+            "additionalProperties": true
+        },
+        "LawTitle": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "law" },
+                "heading": { "$ref": "#/$defs/LawHeading" },
+                "title": { "type": "string" },
+                "text": { "type": "string" }
+            },
+            "required": ["type","heading","title","text"],
+            "additionalProperties": true
+        },
+        "LawTextFragment": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": { "const": "text" },
+                        "text": { "type": "string" }
+                    },
+                    "required": ["type","text"],
+                    "additionalProperties": true
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": { "const": "reference" },
+                        "text": { "type": "string" },
+                        "target": { "$ref": "#/$defs/LawReferenceTarget" }
+                    },
+                    "required": ["type","text","target"],
+                    "additionalProperties": true
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": { "const": "date" },
+                        "text": { "type": "string" },
+                        "datetime": { "type": "string" }
+                    },
+                    "required": ["type","text","datetime"],
+                    "additionalProperties": true
+                }
+            ]
+        },
+        "LawReferenceTarget": {
+            "type": "object",
+            "properties": {
+                "article": { "type": "array", "items": { "type": "integer" } },
+                "paragraph": { "type": "integer" },
+                "item": { "type": "integer" }
+            },
+            "required": ["article"],
+            "additionalProperties": false
+        },
+        "LawSentenceBlock": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "sentence" },
+                "text": { "type": "string" },
+                "fragments": { "type": "array", "items": { "$ref": "#/$defs/LawTextFragment" } }
+            },
+            "required": ["type","text","fragments"],
+            "additionalProperties": true
+        },
+        "LawItem": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "item" },
+                "num": { "type": "integer" },
+                "title": { "type": "string" },
+                "marker": { "type": "string" },
+                "body": { "$ref": "#/$defs/LawSentenceBlock" }
+            },
+            "required": ["type","num","title","marker","body"],
+            "additionalProperties": true
+        },
+        "LawParagraph": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "paragraph" },
+                "heading": { "$ref": "#/$defs/LawHeading" },
+                "id": { "type": "string" },
+                "num": { "type": "integer" },
+                "title": { "type": "string" },
+                "text": { "type": "string" },
+                "sentenceBlocks": { "type": "array", "items": { "$ref": "#/$defs/LawSentenceBlock" } },
+                "items": { "type": "array", "items": { "$ref": "#/$defs/LawItem" } }
+            },
+            "required": ["type","heading","id","num","title","text","sentenceBlocks","items"],
+            "additionalProperties": true
+        },
+        "LawArticle": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "article" },
+                "heading": { "$ref": "#/$defs/LawHeading" },
+                "id": { "type": "string" },
+                "num": { "type": "string" },
+                "title": { "type": "string" },
+                "caption": { "type": "string" },
+                "paragraphs": { "type": "array", "items": { "$ref": "#/$defs/LawParagraph" } }
+            },
+            "required": ["type","heading","id","num","title","paragraphs"],
+            "additionalProperties": true
+        },
+        "LawChapter": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "chapter" },
+                "heading": { "$ref": "#/$defs/LawHeading" },
+                "id": { "type": "string" },
+                "num": { "type": "string" },
+                "title": { "type": "string" },
+                "caption": { "type": "string" },
+                "articles": { "type": "array", "items": { "$ref": "#/$defs/LawArticle" } }
+            },
+            "required": ["type","heading","id","num","title","articles"],
+            "additionalProperties": true
+        },
+        "LawMainProvision": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "mainProvision" },
+                "children": { "type": "array", "items": { "anyOf": [ { "$ref": "#/$defs/LawChapter" }, { "$ref": "#/$defs/LawArticle" } ] } }
+            },
+            "required": ["type","children"],
+            "additionalProperties": true
+        },
+        "LawPreamble": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "preamble" },
+                "heading": { "$ref": "#/$defs/LawHeading" },
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "paragraphs": { "type": "array", "items": { "$ref": "#/$defs/LawParagraph" } }
+            },
+            "required": ["type","heading","id","title","paragraphs"],
+            "additionalProperties": true
+        },
+        "LawSupplProvision": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "supplProvision" },
+                "heading": { "$ref": "#/$defs/LawHeading" },
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "label": { "type": "string" },
+                "paragraphs": { "type": "array", "items": { "$ref": "#/$defs/LawParagraph" } },
+                "isAmendment": { "type": "boolean" }
+            },
+            "required": ["type","heading","id","title","label","paragraphs","isAmendment"],
+            "additionalProperties": true
+        },
+        "LawDateMetadataBlock": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "date" },
+                "num": { "type": "integer" },
+                "text": { "type": "string" },
+                "fragments": { "type": "array", "items": { "$ref": "#/$defs/LawTextFragment" } },
+                "date": { "type": "string" },
+                "amend": { "type": "boolean" }
+            },
+            "required": ["type","text","fragments","date","amend"],
+            "additionalProperties": true
+        },
+        "LawIssuerMetadataBlock": {
+            "type": "object",
+            "properties": {
+                "type": { "const": "issuer" },
+                "num": { "type": "integer" },
+                "text": { "type": "string" },
+                "fragments": { "type": "array", "items": { "$ref": "#/$defs/LawTextFragment" } }
+            },
+            "required": ["type","text","fragments"],
+            "additionalProperties": true
+        },
+        "LawMetadataBlock": {
+            "anyOf": [ { "$ref": "#/$defs/LawDateMetadataBlock" }, { "$ref": "#/$defs/LawIssuerMetadataBlock" } ]
+        }
+    },
+    "additionalProperties": true
+}
