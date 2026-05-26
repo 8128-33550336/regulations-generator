@@ -12,8 +12,8 @@ npm run build
 コマンド形式:
 
 ```text
-regulations-generate gen [-a] [-H] [-p] [-x] [-j] [-m] [-i] [-s] [-b <url>|--base-url <url>] [--title <title>] [--description <text>] <input> <output-dir>
-regulations-generate conv [-H] [-p] [-x] [-j] [-m] <input.md> <output-file>
+regulations-generate gen [-a] [-H] [-p] [-x] [-j] [-t] [-m] [-i] [-s] [-b <url>|--base-url <url>] [--title <title>] [--description <text>] <input> <output-dir>
+regulations-generate conv [-H] [-p] [-x] [-j] [-t] [-m] <input.md> <output-file>
 regulations-generate diff [-H] [-p] <before.md> <after.md> [output]
 ```
 
@@ -23,6 +23,7 @@ regulations-generate diff [-H] [-p] <before.md> <after.md> [output]
 regulations-generate conv -H example/in/bylaw-welcoming-new.md example/out/bylaw-welcoming-new.html
 regulations-generate conv -p example/in/bylaw-welcoming-new.md example/out/bylaw-welcoming-new.pdf
 regulations-generate conv -x example/in/bylaw-welcoming-new.md example/out/bylaw-welcoming-new.xml
+regulations-generate conv -t example/in/bylaw-welcoming-new.md example/out/bylaw-welcoming-new.toml
 regulations-generate diff -H -p example/in/bylaw-welcoming-old.md example/in/bylaw-welcoming-new.md example/out/bylaw-welcoming-diff.html
 ```
 
@@ -40,6 +41,7 @@ npm run all
 npm run html
 npm run pdf
 npm run xml
+npm run toml
 ```
 
 サブコマンド:
@@ -58,8 +60,9 @@ npm run xml
 | `-p`, `--pdf` | yes | yes | yes | PDF を生成 |
 | `-x`, `--xml` | yes | yes | no | XML を生成 |
 | `-j`, `--json` | yes | yes | no | JSON を生成 |
+| `-t`, `--toml` | yes | yes | no | TOML を生成 |
 | `-m`, `--md` | yes | yes | no | Markdown をコピー |
-| `-a`, `--all` | yes | no | no | `-H -p -x -j -i -s -m` 相当 |
+| `-a`, `--all` | yes | no | no | `-H -p -x -j -t -i -s -m` 相当 |
 | `-i`, `--index` | yes | no | no | `index.html`, `index.md`, `index.json` を生成 |
 | `-s`, `--sitemap` | yes | no | no | `sitemap.xml` を生成 |
 | `-b`, `--base-url <url>` | yes | no | no | `sitemap.xml` のベース URL |
@@ -81,7 +84,7 @@ src/
 
 ### commands
 
-- `commands/generate.ts`: Markdown から HTML、XML、JSON、インデックス、サイトマップ、新旧対照表 HTML を生成します。
+- `commands/generate.ts`: Markdown から HTML、XML、JSON、TOML、インデックス、サイトマップ、新旧対照表 HTML を生成します。
 
 CLI はファイル読み書きと引数処理だけを担当し、パースやレンダリングの詳細は下位モジュールへ委譲します。
 

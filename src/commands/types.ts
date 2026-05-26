@@ -4,6 +4,7 @@ export type GenerateOptions = {
   pdf?: boolean;
   xml?: boolean;
   json?: boolean;
+  toml?: boolean;
   index?: boolean;
   md?: boolean;
   sitemap?: boolean;

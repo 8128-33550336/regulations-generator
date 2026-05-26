@@ -436,7 +436,7 @@ function validateParagraphSequence(article: Section, paragraphSections: Section[
   }
 }
 
-function articleCaption(section: Section): string | undefined {
+function headingCaption(section: Section): string | undefined {
   if (!section.heading.caption) {
     return undefined;
   }
@@ -462,7 +462,7 @@ function buildArticle(section: Section, paragraphSections: Section[]): LawArticl
     id: section.heading.id,
     num: sectionNum(section, "article"),
     title: section.heading.parsedText.rawText,
-    caption: articleCaption(section),
+    caption: headingCaption(section),
     paragraphs,
   };
 }
@@ -516,7 +516,8 @@ function collectChapters(sections: Section[]): LawChapter[] {
       heading: lawHeading(chapter),
       id: chapter.heading.id,
       num: sectionNum(chapter, "chapter"),
-      title: chapter.title,
+      title: chapter.heading.parsedText.rawText,
+      caption: headingCaption(chapter),
       articles: collectArticles(children, chapter.title),
     });
   }

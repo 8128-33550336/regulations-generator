@@ -69,7 +69,7 @@ export type DiffEntry = {
 };
 
 export type OutputFile = {
-  type: "html" | "pdf" | "xml" | "json" | "md";
+  type: "html" | "pdf" | "xml" | "json" | "toml" | "md";
   path: string;
 };
 
@@ -185,6 +185,7 @@ export type LawChapter = {
   id: string;
   num: string;
   title: string;
+  caption?: string;
   articles: LawArticle[];
 };
 

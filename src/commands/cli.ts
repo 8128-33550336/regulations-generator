@@ -14,12 +14,13 @@ function addFormatOptions(command: Command): Command {
     .option("-p, --pdf", "write PDF files")
     .option("-x, --xml", "write XML files")
     .option("-j, --json", "write JSON files")
+    .option("-t, --toml", "write TOML files")
     .option("-m, --md", "copy Markdown files");
 }
 
 function addDirectoryOptions(command: Command): Command {
   return addFormatOptions(command)
-    .option("-a, --all", "write HTML, PDF, XML, JSON, Markdown, index, and sitemap files")
+    .option("-a, --all", "write HTML, PDF, XML, JSON, TOML, Markdown, index, and sitemap files")
     .option("-i, --index", "write index.html, index.md, and index.json")
     .option("-s, --sitemap", "write sitemap.xml")
     .option("-b, --base-url <url>", "base URL for sitemap.xml", "https://example.com/")

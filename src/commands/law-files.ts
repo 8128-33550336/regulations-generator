@@ -5,6 +5,7 @@ import { collectSections } from "../parse/markdown.js";
 import { renderHtmlDocument } from "../render/page.js";
 import { renderPdfFromHtml, renderPdfFromHtmlContent } from "../render/pdf.js";
 import { renderLawDocumentModelNodes } from "../render/sections.js";
+import { renderLawModelToml } from "../render/toml.js";
 import { renderXmlModel } from "../render/xml.js";
 import { relativePath } from "../shared/path.js";
 import type { GeneratedLaw, LawDocumentModel, OutputFile, Section } from "../types.js";
@@ -17,12 +18,19 @@ type ParsedMarkdown = {
   lawModel: LawDocumentModel;
 };
 
-function selectedOutputFormats(options: GenerateOptions): OutputFile["type"][] {
-  const formats: OutputFile["type"][] = [];
+type NonPdfOutputFormat = Exclude<OutputFile["type"], "pdf">;
+
+function assertNever(value: never): never {
+  throw new Error(`Unsupported output format: ${value}`);
+}
+
+function selectedOutputFormats(options: GenerateOptions): NonPdfOutputFormat[] {
+  const formats: NonPdfOutputFormat[] = [];
 
   if (options.html) formats.push("html");
   if (options.xml) formats.push("xml");
   if (options.json) formats.push("json");
+  if (options.toml) formats.push("toml");
   if (options.md) formats.push("md");
 
   return formats;
@@ -98,6 +106,11 @@ async function writeJson(parsed: ParsedMarkdown, file: string): Promise<void> {
   console.log(`Wrote ${relativePath(file)}`);
 }
 
+async function writeToml(parsed: ParsedMarkdown, file: string): Promise<void> {
+  await writeFile(file, renderLawModelToml(parsed.lawModel));
+  console.log(`Wrote ${relativePath(file)}`);
+}
+
 async function writeMarkdown(inputFile: string, file: string): Promise<void> {
   await copyFile(inputFile, file);
   console.log(`Wrote ${relativePath(file)}`);
@@ -116,8 +129,8 @@ export async function writeSingleFile(inputFile: string, outputFile: string, opt
 
   const formats = selectedOutputFormats(options);
 
-  if (options.pdf && (options.xml || options.json || options.md)) {
-    throw new Error("-p/--pdf cannot be combined with -x, -j, or -m in conv/convert.");
+  if (options.pdf && (options.xml || options.json || options.toml || options.md)) {
+    throw new Error("-p/--pdf cannot be combined with -x, -j, -t, or -m in conv/convert.");
   }
 
   if (!options.pdf && formats.length > 1) {
@@ -147,25 +160,34 @@ export async function writeSingleFile(inputFile: string, outputFile: string, opt
 
   const format = formats[0];
 
-  if (format === "md") {
-    await writeMarkdown(inputFile, outputFile);
-    return;
+  switch (format) {
+    case "md":
+      await writeMarkdown(inputFile, outputFile);
+      return;
+    case "html": {
+      const parsed = await parseMarkdown(inputFile);
+      await copyStylesheet(path.dirname(outputFile));
+      await writeHtml(parsed, outputFile, path.dirname(outputFile));
+      return;
+    }
+    case "xml": {
+      const parsed = await parseMarkdown(inputFile);
+      await writeXml(parsed, outputFile);
+      return;
+    }
+    case "json": {
+      const parsed = await parseMarkdown(inputFile);
+      await writeJson(parsed, outputFile);
+      return;
+    }
+    case "toml": {
+      const parsed = await parseMarkdown(inputFile);
+      await writeToml(parsed, outputFile);
+      return;
+    }
+    default:
+      assertNever(format);
   }
-
-  const parsed = await parseMarkdown(inputFile);
-
-  if (format === "html") {
-    await copyStylesheet(path.dirname(outputFile));
-    await writeHtml(parsed, outputFile, path.dirname(outputFile));
-    return;
-  }
-
-  if (format === "xml") {
-    await writeXml(parsed, outputFile);
-    return;
-  }
-
-  await writeJson(parsed, outputFile);
 }
 
 export async function generateOne(inputFile: string, outputDir: string, options: GenerateOptions): Promise<GeneratedLaw> {
@@ -204,6 +226,12 @@ export async function generateOne(inputFile: string, outputDir: string, options:
     const jsonFile = outputPath(outputDir, base, "json");
     await writeJson(parsed, jsonFile);
     files.push({ type: "json", path: relativeOutputPath(outputDir, jsonFile) });
+  }
+
+  if (options.toml) {
+    const tomlFile = outputPath(outputDir, base, "toml");
+    await writeToml(parsed, tomlFile);
+    files.push({ type: "toml", path: relativeOutputPath(outputDir, tomlFile) });
   }
 
   if (options.md) {

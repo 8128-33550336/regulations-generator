@@ -174,7 +174,30 @@ type ParsedTitle = {
   caption?: HeadingCaption;
 };
 
+function parseChapterTitleWithCaption(title: string): ParsedTitle | undefined {
+  const match = /^(第.+?章)(\s+)(.+)$/u.exec(title);
+
+  if (!match) {
+    return undefined;
+  }
+
+  return {
+    title: match[1],
+    caption: {
+      prefix: match[2],
+      caption: match[3],
+      suffix: "",
+    },
+  };
+}
+
 function parseTitleWithCaption(title: string): ParsedTitle {
+  const chapterTitle = parseChapterTitleWithCaption(title);
+
+  if (chapterTitle) {
+    return chapterTitle;
+  }
+
   const openCount = [...title].filter((char) => char === "（" || char === "(").length;
   const closeCount = [...title].filter((char) => char === "）" || char === ")").length;
 

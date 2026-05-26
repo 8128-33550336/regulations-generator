@@ -75,6 +75,7 @@ function expandGenerateOptions(options: GenerateOptions): GenerateOptions {
     pdf: Boolean(options.pdf || options.all),
     xml: Boolean(options.xml || options.all),
     json: Boolean(options.json || options.all),
+    toml: Boolean(options.toml || options.all),
     index: Boolean(options.index || options.all),
     md: Boolean(options.md || options.all),
     sitemap: Boolean(options.sitemap || options.all),

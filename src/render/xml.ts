@@ -104,8 +104,10 @@ function renderArticleNode(node: LawArticle): XmlBuilderNode {
 }
 
 function renderChapterNode(node: LawChapter): XmlBuilderNode {
+  const chapterTitle = node.caption ? `${node.title}${node.caption}` : node.title;
+
   return element("Chapter", { Num: node.num }, [
-    textElement("ChapterTitle", node.title),
+    textElement("ChapterTitle", chapterTitle),
     ...node.articles.map(renderArticleNode),
   ]);
 }

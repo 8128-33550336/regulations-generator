@@ -18,7 +18,8 @@
     "all": "npm run cli -- gen -a",
     "html": "npm run cli -- gen -H",
     "pdf": "npm run cli -- gen -p",
-    "xml": "npm run cli -- gen -x"
+    "xml": "npm run cli -- gen -x",
+    "toml": "npm run cli -- gen -t"
   },
   "dependencies": {
     "commander": "^14.0.3",
@@ -27,6 +28,7 @@
     "rehype-stringify": "^10.0.1",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.2",
+    "smol-toml": "^1.6.1",
     "unified": "^11.0.5"
   },
   "devDependencies": {

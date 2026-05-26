@@ -147,6 +147,26 @@ function isArticleHeading(heading: ParsedHeading | LawHeading): boolean {
   return heading.id.startsWith("article") && !heading.id.includes("-paragraph");
 }
 
+function isChapterHeading(heading: ParsedHeading | LawHeading): boolean {
+  return heading.id.startsWith("chapter");
+}
+
+function headingCaptionChildren(heading: ParsedHeading | LawHeading, highlightClass: string, highlightCaption: boolean): HtmlNode[] {
+  const caption = heading.caption;
+
+  if (!caption) {
+    throw new Error(`[law-html] expected heading caption: ${heading.title}`);
+  }
+
+  return highlightCaption
+    ? [
+        text(caption.prefix),
+        element("span", { class: highlightClass }, [text(caption.caption)]),
+        text(caption.suffix),
+      ]
+    : [text(`${caption.prefix}${caption.caption}${caption.suffix}`)];
+}
+
 function articleTitleNodes(heading: ParsedHeading | LawHeading, highlightClass: string, highlightCaption: boolean): HtmlNode[] {
   const articleTitle = element("span", { class: "article-title", "data-type": "article-title" }, [text(heading.baseTitle)]);
 
@@ -154,23 +174,22 @@ function articleTitleNodes(heading: ParsedHeading | LawHeading, highlightClass: 
     return [articleTitle];
   }
 
-  const caption = heading.caption;
-
-  if (!caption) {
-    throw new Error(`[law-html] expected article caption: ${heading.title}`);
-  }
-
-  const captionChildren = highlightCaption
-    ? [
-        text(caption.prefix),
-        element("span", { class: highlightClass }, [text(caption.caption)]),
-        text(caption.suffix),
-      ]
-    : [text(`${caption.prefix}${caption.caption}${caption.suffix}`)];
-
   return [
     articleTitle,
-    element("span", { class: "article-caption", "data-type": "article-caption" }, captionChildren),
+    element("span", { class: "article-caption", "data-type": "article-caption" }, headingCaptionChildren(heading, highlightClass, highlightCaption)),
+  ];
+}
+
+function chapterTitleNodes(heading: ParsedHeading | LawHeading, highlightClass: string, highlightCaption: boolean): HtmlNode[] {
+  const chapterTitle = element("span", { class: "chapter-title", "data-type": "chapter-title" }, [text(heading.baseTitle)]);
+
+  if (!heading.caption) {
+    return [chapterTitle];
+  }
+
+  return [
+    chapterTitle,
+    element("span", { class: "chapter-caption", "data-type": "chapter-caption" }, headingCaptionChildren(heading, highlightClass, highlightCaption)),
   ];
 }
 
@@ -208,6 +227,10 @@ export function renderHeadingTitleNode(
 
   if (isArticleHeading(input.heading)) {
     return element(tag, titleProperties, articleTitleNodes(input.heading, highlightClass, shouldHighlightParenthetical));
+  }
+
+  if (isChapterHeading(input.heading)) {
+    return element(tag, titleProperties, chapterTitleNodes(input.heading, highlightClass, shouldHighlightParenthetical));
   }
 
   if (!shouldHighlightParenthetical) {
