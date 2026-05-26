@@ -6,7 +6,7 @@ export function renderIndexJson(laws: GeneratedLaw[]): string {
   return `${JSON.stringify({ laws }, null, 2)}\n`;
 }
 
-export function renderIndexHtml(laws: GeneratedLaw[], title: string, description: string, stylesheet: string): string {
+export function renderIndexHtml(laws: GeneratedLaw[], title: string, description: string): string {
   const items = laws.map((law) => {
     const children: HtmlNode[] = [text(law.base)];
 
@@ -18,7 +18,7 @@ export function renderIndexHtml(laws: GeneratedLaw[], title: string, description
   });
   return renderHtmlDocument({
     title,
-    stylesheets: [stylesheet],
+    stylesheets: [],
     body: [
       element("h1", {}, [text(title)]),
       element("p", {}, [text(description)]),

@@ -6,7 +6,7 @@ import { closePdfBrowser } from "../render/pdf.js";
 import { relativePath, resolveArgPath } from "../shared/path.js";
 import type { GeneratedLaw } from "../types.js";
 import { generateOne, markdownInputs } from "./law-files.js";
-import { copyStylesheet, stylesheetHref } from "./resources.js";
+import { copyStylesheet } from "./resources.js";
 import type { GenerateOptions } from "./types.js";
 
 function indexTitle(inputPath: string, options: GenerateOptions): string {
@@ -20,7 +20,7 @@ async function writeIndexFiles(inputPath: string, outputDir: string, laws: Gener
   const indexMd = path.join(outputDir, "index.md");
 
   await writeFile(indexJson, renderIndexJson(laws));
-  await writeFile(indexHtml, renderIndexHtml(laws, title, options.description, stylesheetHref(indexHtml, outputDir)));
+  await writeFile(indexHtml, renderIndexHtml(laws, title, options.description));
   await writeFile(indexMd, renderIndexMarkdown(laws, title, options.description));
   console.log(`Wrote ${relativePath(indexJson)}`);
   console.log(`Wrote ${relativePath(indexHtml)}`);
@@ -46,7 +46,7 @@ export async function generate(input: string, output: string | undefined, option
 
     const inputFiles = await markdownInputs(inputPath);
     await mkdir(outputPathValue, { recursive: true });
-    if (effectiveOptions.html || effectiveOptions.index) {
+    if (effectiveOptions.html) {
       await copyStylesheet(outputPathValue);
     }
 
