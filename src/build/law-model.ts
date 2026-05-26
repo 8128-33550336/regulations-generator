@@ -561,13 +561,18 @@ function buildSupplProvision(section: Section): LawSupplProvision {
     error(`supplementary provision has no paragraph: ${section.title}`);
   }
 
+    const paragraphs = blocks.map((block, index) => buildParagraph(paragraphSection(section, index + 1, block.text)));
+
+    const isAmendment = paragraphs.some((paragraph) => paragraph.sentenceBlocks.some((sentence) => sentence.fragments.some((fragment) => fragment.type === "date" && metadataAmend(fragment.text))));
+
   return {
     type: "supplProvision",
     heading: lawHeading(section),
     id: section.heading.id,
     title: section.title,
     label: section.title,
-    paragraphs: blocks.map((block, index) => buildParagraph(paragraphSection(section, index + 1, block.text))),
+    paragraphs,
+    isAmendment,
   };
 }
 

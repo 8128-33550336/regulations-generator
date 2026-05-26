@@ -209,6 +209,7 @@ export type LawSupplProvision = {
   title: string;
   label: string;
   paragraphs: LawParagraph[];
+  isAmendment: boolean;
 };
 
 export type LawDocumentModel = {
