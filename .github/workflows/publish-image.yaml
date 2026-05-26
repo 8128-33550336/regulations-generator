@@ -4,6 +4,7 @@ run-name: Publish image
 permissions:
   contents: read
   packages: write
+  actions: write
 
 on:
   workflow_dispatch:
@@ -15,7 +16,6 @@ on:
       - package.json
       - package-lock.json
       - tsconfig.json
-      - bin/**
       - resources/**
       - src/**
       - .github/workflows/publish-image.yaml
@@ -54,3 +54,14 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Trigger dispatch
+        env:
+          GITHUB_TOKEN: ${{ secrets.REG_TESTS_TOKEN }}
+        run: |
+            curl -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              https://api.github.com/repos/8128-33550336/reg-tests/actions/workflows/publish.yaml/dispatches \
+              -d '{"ref":"main"}'
