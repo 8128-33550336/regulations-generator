@@ -13,17 +13,6 @@ RUN npm run build
 
 FROM node:25-trixie-slim
 
-ARG BUILD_GITHUB_REPOSITORY
-ARG BUILD_GITHUB_SHA
-ARG BUILD_GITHUB_SERVER_URL
-
-ENV NODE_ENV=production
-ENV PUPPETEER_SKIP_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
-ENV BUILD_GITHUB_REPOSITORY=${BUILD_GITHUB_REPOSITORY}
-ENV BUILD_GITHUB_SHA=${BUILD_GITHUB_SHA}
-ENV BUILD_GITHUB_SERVER_URL=${BUILD_GITHUB_SERVER_URL}
-
 WORKDIR /root/workdir
 
 RUN mkdir /usr/local/share/keyrings/
@@ -37,12 +26,25 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json tsconfig.json ./
+
+ENV NODE_ENV=production
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
 RUN npm ci --omit=dev
 
 COPY resources ./resources
 COPY --from=builder /root/workdir/dist ./dist
 
 RUN npm link
+
+ARG BUILD_GITHUB_REPOSITORY
+ARG BUILD_GITHUB_SHA
+ARG BUILD_GITHUB_SERVER_URL
+
+ENV BUILD_GITHUB_REPOSITORY=${BUILD_GITHUB_REPOSITORY}
+ENV BUILD_GITHUB_SHA=${BUILD_GITHUB_SHA}
+ENV BUILD_GITHUB_SERVER_URL=${BUILD_GITHUB_SERVER_URL}
 
 ENTRYPOINT ["regulations-generate"]
 CMD ["--help"]
