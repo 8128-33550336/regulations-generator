@@ -1,4 +1,5 @@
-import { element, renderNodes, text, type HtmlNode } from "./hast.js";
+import { element, text, type HtmlNode } from "./hast.js";
+import { renderHtmlDocument } from "./page.js";
 import type { GeneratedLaw } from "../types.js";
 
 export function renderIndexJson(laws: GeneratedLaw[]): string {
@@ -15,20 +16,15 @@ export function renderIndexHtml(laws: GeneratedLaw[], title: string, description
 
     return element("li", {}, children);
   });
-  const document = element("html", { lang: "ja" }, [
-    element("head", {}, [
-      element("meta", { charset: "UTF-8" }),
-      element("meta", { name: "viewport", content: "width=device-width, initial-scale=1.0" }),
-      element("title", {}, [text(title)]),
-    ]),
-    element("body", {}, [
+  return renderHtmlDocument({
+    title,
+    stylesheets: [stylesheet],
+    body: [
       element("h1", {}, [text(title)]),
       element("p", {}, [text(description)]),
       element("ul", {}, items),
-    ]),
-  ]);
-
-  return `<!DOCTYPE html>${renderNodes([document])}\n`;
+    ],
+  });
 }
 
 export function renderIndexMarkdown(laws: GeneratedLaw[], title: string, description: string): string {

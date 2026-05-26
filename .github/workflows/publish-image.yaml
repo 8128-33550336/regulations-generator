@@ -47,6 +47,10 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_GITHUB_REPOSITORY=${{ github.repository }}
+            BUILD_GITHUB_SHA=${{ github.sha }}
+            BUILD_GITHUB_SERVER_URL=${{ github.server_url }}
           tags: |
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
