@@ -1,11 +1,11 @@
 import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
+import { packageRoot } from "../shared/package-root.js";
 import { relativePath } from "../shared/path.js";
 
 const stylesheetFile = "regulation.css";
-const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const sourceStylesheet = path.join(packageRoot, "resources", stylesheetFile);
+const sourceStylesheet = path.join(packageRoot(import.meta.url), "resources", stylesheetFile);
 
 export function stylesheetHref(htmlFile: string, outputRoot: string): string {
   return path.relative(path.dirname(htmlFile), path.join(outputRoot, stylesheetFile)).split(path.sep).join("/");

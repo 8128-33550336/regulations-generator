@@ -1,10 +1,10 @@
 import { execFile } from "node:child_process";
 import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import type { GeneratedLaw } from "../types.js";
+import { packageRoot } from "../shared/package-root.js";
 import { relativePath } from "../shared/path.js";
 
 const execFileAsync = promisify(execFile);
@@ -25,12 +25,8 @@ type ValidationContext = ValidationSchemas & {
   jsonValidate?: JsonValidator;
 };
 
-function packageRoot(): string {
-  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-}
-
 function validationSchemas(): ValidationSchemas {
-  const schemaDir = path.join(packageRoot(), "schema");
+  const schemaDir = path.join(packageRoot(import.meta.url), "schema");
   return {
     jsonSchemaFile: path.join(schemaDir, "schema.json"),
     rncSchemaFile: path.join(schemaDir, "schema.rnc"),
@@ -51,7 +47,7 @@ async function jingCommand(): Promise<JingCommand> {
     return { command: "java", args: ["-jar", process.env.JING_JAR] };
   }
 
-  const localJar = path.join(packageRoot(), "jing.jar");
+  const localJar = path.join(packageRoot(import.meta.url), "jing.jar");
 
   if (await exists(localJar)) {
     return { command: "java", args: ["-jar", localJar] };
