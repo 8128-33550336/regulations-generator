@@ -25,10 +25,7 @@ RUN apt-get update \
       --no-install-recommends \
     && wget -q -O /tmp/jing.zip https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/jing-trang/jing-20091111.zip \
     && unzip -q /tmp/jing.zip -d /tmp \
-    && mkdir -p /opt/jing \
-    && cp /tmp/jing-20091111/bin/jing.jar /opt/jing/jing.jar \
-    && printf '#!/bin/sh\nexec java -jar /opt/jing/jing.jar "$@"\n' > /usr/local/bin/jing \
-    && chmod +x /usr/local/bin/jing \
+    && cp /tmp/jing-20091111/bin/jing.jar ./jing.jar \
     && rm -rf /tmp/jing.zip /tmp/jing-20091111 \
     && rm -rf /var/lib/apt/lists/*
 

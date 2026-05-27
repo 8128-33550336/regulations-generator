@@ -14,11 +14,6 @@ type ValidationSchemas = {
   rncSchemaFile: string;
 };
 
-type JingCommand = {
-  command: string;
-  args: string[];
-};
-
 type JsonValidator = ReturnType<Ajv2020["compile"]>;
 
 type ValidationContext = ValidationSchemas & {
@@ -42,18 +37,8 @@ async function exists(file: string): Promise<boolean> {
   }
 }
 
-async function jingCommand(): Promise<JingCommand> {
-  if (process.env.JING_JAR) {
-    return { command: "java", args: ["-jar", process.env.JING_JAR] };
-  }
-
-  const localJar = path.join(packageRoot(import.meta.url), "jing.jar");
-
-  if (await exists(localJar)) {
-    return { command: "java", args: ["-jar", localJar] };
-  }
-
-  return { command: "jing", args: [] };
+function jingJarFile(): string {
+  return path.join(packageRoot(import.meta.url), "jing.jar");
 }
 
 async function loadJsonValidator(schemaFile: string): Promise<JsonValidator> {
@@ -85,10 +70,8 @@ async function validateJsonFile(file: string, validate: JsonValidator): Promise<
 }
 
 async function validateXmlFile(file: string, schemaFile: string): Promise<boolean> {
-  const jing = await jingCommand();
-
   try {
-    await execFileAsync(jing.command, [...jing.args, "-c", schemaFile, file]);
+    await execFileAsync("java", ["-jar", jingJarFile(), "-c", schemaFile, file]);
     console.log(`[schema] ok xml ${relativePath(file)}`);
     return true;
   } catch (error) {
