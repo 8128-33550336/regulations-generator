@@ -45,17 +45,3 @@ export async function renderPdfFromHtml(htmlFile: string, pdfFile: string): Prom
 
   console.log(`Wrote ${relativePath(pdfFile)}`);
 }
-
-export async function renderPdfFromHtmlContent(html: string, pdfFile: string): Promise<void> {
-  const browser = await pdfBrowser();
-  const page = await browser.newPage();
-
-  try {
-    await page.setContent(html, { waitUntil: "load" });
-    await writePdf(page, pdfFile);
-  } finally {
-    await page.close();
-  }
-
-  console.log(`Wrote ${relativePath(pdfFile)}`);
-}

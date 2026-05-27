@@ -1,15 +1,16 @@
-import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { buildLawModel } from "../build/law-model.js";
 import { collectSections } from "../parse/markdown.js";
 import { renderHtmlDocument } from "../render/page.js";
-import { renderPdfFromHtml, renderPdfFromHtmlContent } from "../render/pdf.js";
+import { renderPdfFromHtml } from "../render/pdf.js";
 import { renderLawDocumentModelNodes } from "../render/sections.js";
 import { renderLawModelToml } from "../render/toml.js";
 import { renderXmlModel } from "../render/xml.js";
 import { relativePath } from "../shared/path.js";
 import type { GeneratedLaw, LawDocumentModel, OutputFile, Section } from "../types.js";
-import { copyStylesheet, sourceStylesheetHref, stylesheetHref } from "./resources.js";
+import { copyStylesheet, stylesheetHref } from "./resources.js";
 import type { GenerateOptions } from "./types.js";
 
 type ParsedMarkdown = {
@@ -116,6 +117,19 @@ async function writeMarkdown(inputFile: string, file: string): Promise<void> {
   console.log(`Wrote ${relativePath(file)}`);
 }
 
+async function renderPdfOnly(parsed: ParsedMarkdown, pdfFile: string): Promise<void> {
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "regulations-generator-pdf-"));
+  const tempHtmlFile = path.join(tempRoot, "index.html");
+
+  try {
+    await copyStylesheet(tempRoot, { log: false });
+    await writeFile(tempHtmlFile, await renderHtml(parsed, stylesheetHref(tempHtmlFile, tempRoot)));
+    await renderPdfFromHtml(tempHtmlFile, pdfFile);
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+}
+
 export async function writeSingleFile(inputFile: string, outputFile: string, options: GenerateOptions): Promise<void> {
   const inputStat = await stat(inputFile);
 
@@ -154,7 +168,7 @@ export async function writeSingleFile(inputFile: string, outputFile: string, opt
       return;
     }
 
-    await renderPdfFromHtmlContent(await renderHtml(parsed, sourceStylesheetHref()), outputFile);
+    await renderPdfOnly(parsed, outputFile);
     return;
   }
 
@@ -211,7 +225,7 @@ export async function generateOne(inputFile: string, outputDir: string, options:
     if (options.html) {
       await renderPdfFromHtml(htmlFile, pdfFile);
     } else {
-      await renderPdfFromHtmlContent(await renderHtml(parsed, sourceStylesheetHref()), pdfFile);
+      await renderPdfOnly(parsed, pdfFile);
     }
     files.push({ type: "pdf", path: relativeOutputPath(outputDir, pdfFile) });
   }
